@@ -92,19 +92,7 @@ const frameHandler = frames(async (ctx) => {
             target={{ pathname: "/", query: { action: "search" } }}
           >
             🔎 Search Another
-          </Button>,
-          <Button
-            action="post"
-            target={{ pathname: "/", query: { action: "my_token" } }}
-          >
-            My Token
-          </Button>,
-          <Button
-            action="post"
-            target={{ pathname: "/", query: { action: "random" } }}
-          >
-            Random
-          </Button>,
+          </Button>
         ],
         state: { symbol: symbol },
       };
@@ -221,18 +209,18 @@ const frameHandler = frames(async (ctx) => {
     const SUPPLY_DIVIDER = 1000000000000000000;
 
     const positiveText = encodeURIComponent(
-      `Did you know ${displayName}'s Fan Token is a better performing asset than the Farcaster Network Fan Token? Up ($${latestPercentage.toFixed(
-        2
-      )}%)! Compared to ${farcasterLatestPercentage.toFixed(2)}%`
+      `Did you know ${displayName}'s Fan Token is a better performing asset than the Farcaster Network Fan Token? Up ${latestPercentage.toFixed(2)}%! Compared to ${farcasterLatestPercentage.toFixed(2)}% \n\n BUY BEFORE IT GOES HIGHER!`
     );
-    const positiveUrl = `https://warpcast.com/~/compose?text=${positiveText}&embeds[]=https://moxie-chart-frame.vercel.app/frames?fid=${
+    let encodedPositiveText = positiveText.replace(/%25/g, '%2525');
+
+    const positiveUrl = `https://warpcast.com/~/compose?text=${encodedPositiveText}&embeds[]=https://moxie-ft-x-fnft.vercel.app/frames?fid=${
       symbol.split(":")[1]
     }`;
 
     const negativeText = encodeURIComponent(
-      `OMG! I should have bought the farcaster network FT as a proxy instead of @${username}. @zoz.eth was RIGHT! https://warpcast.com/zoz.eth/0xf80996f4`
+      `OMG! I should have bought the Farcaster Network Fan Token as a proxy instead of @${displayName}. \n\n @zoz.eth was RIGHT! \n https://warpcast.com/zoz.eth/0xf80996f4`
     );
-    const negativeUrl = `https://warpcast.com/~/compose?text=${negativeText}&embeds[]=https://moxie-chart-frame.vercel.app/frames?fid=${
+    const negativeUrl = `https://warpcast.com/~/compose?text=${negativeText}&embeds[]=https://moxie-ft-x-fnft.vercel.app/frames?fid=${
       symbol.split(":")[1]
     }`;
 
@@ -244,7 +232,7 @@ const frameHandler = frames(async (ctx) => {
               <img src={profileImage} tw="w-16 h-16 rounded-full mr-4" />
               <div tw="flex flex-col">
                 <h2 tw="flex text-3xl font-bold m-0">
-                  {displayName} Performance against Farcaster Network
+                  {displayName} Performance Vs Farcaster Network
                 </h2>
                 <p tw="flex text-xl text-gray-400 m-0">@{username}</p>
               </div>
@@ -324,13 +312,7 @@ const frameHandler = frames(async (ctx) => {
           target={{ pathname: "/", query: { action: "search" } }}
         >
           🔎 Try Again
-        </Button>,
-        <Button
-          action="post"
-          target={{ pathname: "/", query: { action: "my_token" } }}
-        >
-          My Token
-        </Button>,
+        </Button>
       ],
       state: { symbol: symbol },
     };
