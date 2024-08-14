@@ -230,7 +230,7 @@ const frameHandler = frames(async (ctx: any) => {
               <img src={profileImage} tw="w-16 h-16 rounded-full mr-4" />
               <div tw="flex flex-col">
                 <h2 tw="flex text-3xl font-bold m-0">
-                  {displayName} Performance Vs Farcaster Network
+                  {displayName} Fan Token VS Farcaster Network
                 </h2>
                 <p tw="flex text-xl text-gray-400 m-0">@{username}</p>
               </div>
