@@ -18,11 +18,11 @@ export async function generateMetadata({
   // const castActionUrl = new URL("/api/cast-action", appURL());
 
   return {
-    title: "Moxie Fan Token Chart",
-    description: "Check the performance of Moxie Fan Tokens",
+    title: "Moxie Farcaster Network VS Fan Token",
+    description: "Check the fan token performance against Farcaster Network",
     openGraph: {
-      title: "Moxie Fan Token Chart",
-      description: "Check the performance of Moxie Fan Tokens",
+      title: "oxie Farcaster Network VS Fan Token",
+      description: "Check the fan token performance against Farcaster Network",
       images: [`${framesUrl.origin}/api/og`],
     },
     other: {
