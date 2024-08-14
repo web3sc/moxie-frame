@@ -6,8 +6,25 @@ import mappings from "../../output_file.json";
 // Add this new constant
 const USERNAME_FID_MAP = new Map(mappings as [string, number][]);
 
-const frameHandler = frames(async (ctx) => {
-  let symbol;
+interface Snapshot {
+  date: string;
+  price: number;
+  [key: string]: any; // In case there are other fields
+}
+
+interface TokenInfo {
+  totalSupply: number;
+  uniqueHolders: number;
+}
+
+interface Data {
+  hourlySnapshots: Snapshot[];
+  tokenInfo: TokenInfo;
+  [key: string]: any; // In case there are other fields
+}
+
+const frameHandler = frames(async (ctx: any) => {
+  let symbol: string | undefined;
 
   if (ctx.message?.inputText) {
     // Handle search input
@@ -62,16 +79,12 @@ const frameHandler = frames(async (ctx) => {
 
   try {
     // Fetch hourly snapshots data
-    const response = await fetch(
-      `${appURL()}/api/hourly-snapshots?symbol=${symbol}`
-    );
-    const data = await response.json();
+    const response = await fetch(`${appURL()}/api/hourly-snapshots?symbol=${symbol}`);
+    const data: Data = await response.json();
 
     // Fetch farcaster network data
-    const farcasterResponse = await fetch(
-      `${appURL()}/api/hourly-snapshots?symbol=id:farcaster`
-    );
-    const farcasterData = await farcasterResponse.json();
+    const farcasterResponse = await fetch(`${appURL()}/api/hourly-snapshots?symbol=id:farcaster`);
+    const farcasterData: Data = await farcasterResponse.json();
 
     if (!data || !data.tokenInfo) {
       // No fan token found, return the "No fan token yet" page
@@ -80,17 +93,13 @@ const frameHandler = frames(async (ctx) => {
           <div tw="flex flex-col p-8 bg-gray-900 text-white font-sans w-full h-full items-center justify-center">
             <h1 tw="text-6xl font-bold mb-4">No Fan Token Yet</h1>
             <p tw="text-4xl mb-8">
-              This user doesn't have a Fan Token, or their auction is still
-              ongoing.
+              This user doesn't have a Fan Token, or their auction is still ongoing.
             </p>
           </div>
         ),
         textInput: "Search by FID or @username",
         buttons: [
-          <Button
-            action="post"
-            target={{ pathname: "/", query: { action: "search" } }}
-          >
+          <Button action="post" target={{ pathname: "/", query: { action: "search" } }}>
             🔎 Search Another
           </Button>
         ],
@@ -99,22 +108,19 @@ const frameHandler = frames(async (ctx) => {
     }
 
     // Fetch user data
-    const userResponse = await fetch(
-      `${appURL()}/api/user-data?symbol=${symbol}`
-    );
-    const userData = await userResponse.json();
+    const userResponse = await fetch(`${appURL()}/api/user-data?symbol=${symbol}`);
+    const userData: any = await userResponse.json();
 
     // Extract user information
     const user = userData.userData.Socials.Social[0];
     const username = user.profileName;
     const displayName = user.profileDisplayName;
-    const profileImage =
-      user.profileImageContentValue?.image?.extraSmall || user.profileImage;
+    const profileImage = user.profileImageContentValue?.image?.extraSmall || user.profileImage;
 
     // Helper function to group data by date and get the last value
-    const groupDataByDate = (data) => {
+    const groupDataByDate = (data: Snapshot[]): Snapshot[] => {
       return Object.values(
-        data.reduce((acc, snapshot) => {
+        data.reduce((acc: { [key: string]: Snapshot }, snapshot: Snapshot) => {
           const date = new Date(snapshot.date).toISOString().split("T")[0];
           acc[date] = snapshot;
           return acc;
@@ -129,14 +135,14 @@ const frameHandler = frames(async (ctx) => {
     // Filter and group farcaster data starting from the same date as chartData
     const farcasterChartData = groupDataByDate(
       farcasterData.hourlySnapshots.filter(
-        (snapshot) => new Date(snapshot.date) >= farcasterStartDate
+        (snapshot: Snapshot) => new Date(snapshot.date) >= farcasterStartDate
       )
     );
 
     // Function to calculate percentage changes
-    const calculatePercentageChanges = (data) => {
+    const calculatePercentageChanges = (data: Snapshot[]): Snapshot[] => {
       const firstPrice = data[0].price;
-      return data.map((snapshot) => ({
+      return data.map((snapshot: Snapshot) => ({
         ...snapshot,
         percentageChange: ((snapshot.price - firstPrice) / firstPrice) * 100,
       }));
@@ -144,15 +150,13 @@ const frameHandler = frames(async (ctx) => {
 
     // Calculate percentage changes for chartData and farcasterChartData
     const chartDataWithPercentage = calculatePercentageChanges(chartData);
-    const farcasterChartDataWithPercentage = calculatePercentageChanges(
-      farcasterChartData
-    );
+    const farcasterChartDataWithPercentage = calculatePercentageChanges(farcasterChartData);
 
     const chartPercentages = chartDataWithPercentage.map(
-      (snapshot) => snapshot.percentageChange
+      (snapshot: Snapshot) => snapshot.percentageChange
     );
     const farcasterPercentages = farcasterChartDataWithPercentage.map(
-      (snapshot) => snapshot.percentageChange
+      (snapshot: Snapshot) => snapshot.percentageChange
     );
 
     // Log data for debugging
@@ -181,7 +185,7 @@ const frameHandler = frames(async (ctx) => {
 
     // Points for user data chart
     const points = chartDataWithPercentage
-      .map((snapshot, index) => {
+      .map((snapshot: Snapshot, index: number) => {
         const x = (index / (chartDataWithPercentage.length - 1)) * chartWidth;
         const y =
           chartHeight -
@@ -193,7 +197,7 @@ const frameHandler = frames(async (ctx) => {
 
     // Points for farcaster network data chart
     const farcasterPoints = farcasterChartDataWithPercentage
-      .map((snapshot, index) => {
+      .map((snapshot: Snapshot, index: number) => {
         const x = (index / (farcasterChartDataWithPercentage.length - 1)) * chartWidth;
         const y =
           chartHeight -
@@ -208,21 +212,15 @@ const frameHandler = frames(async (ctx) => {
 
     const SUPPLY_DIVIDER = 1000000000000000000;
 
-    const positiveText = encodeURIComponent(
-      `Did you know ${displayName}'s Fan Token is a better performing asset than the Farcaster Network Fan Token? Up ${latestPercentage.toFixed(2)}%! Compared to ${farcasterLatestPercentage.toFixed(2)}% \n\n BUY BEFORE IT GOES HIGHER!`
-    );
-    let encodedPositiveText = positiveText.replace(/%25/g, '%2525');
+    const positiveText = `Did you know ${displayName}'s Fan Token is a better performing asset than the Farcaster Network Fan Token? Up ${latestPercentage.toFixed(2)}%! Compared to ${farcasterLatestPercentage.toFixed(2)}% \n\n BUY BEFORE IT GOES HIGHER!`;
+    let encodedPositiveText = encodeURIComponent(positiveText).replace(/%25/g, '%2525');
 
-    const positiveUrl = `https://warpcast.com/~/compose?text=${encodedPositiveText}&embeds[]=https://moxie-ft-x-fnft.vercel.app/frames?fid=${
-      symbol.split(":")[1]
-    }`;
+    const positiveUrl = `https://warpcast.com/~/compose?text=${encodedPositiveText}&embeds[]=https://moxie-ft-x-fnft.vercel.app/frames?fid=${symbol.split(":")[1]}`;
 
-    const negativeText = encodeURIComponent(
-      `OMG! I should have bought the Farcaster Network Fan Token as a proxy instead of @${displayName}. \n\n @zoz.eth was RIGHT! \n https://warpcast.com/zoz.eth/0xf80996f4`
-    );
-    const negativeUrl = `https://warpcast.com/~/compose?text=${negativeText}&embeds[]=https://moxie-ft-x-fnft.vercel.app/frames?fid=${
-      symbol.split(":")[1]
-    }`;
+    const negativeText = `OMG! I should have bought the Farcaster Network Fan Token as a proxy instead of @${displayName}. \n\n @zoz.eth was RIGHT! \n https://warpcast.com/zoz.eth/0xf80996f4`;
+    const encodedNegativeText = encodeURIComponent(negativeText).replace(/%25/g, '%2525');
+
+    const negativeUrl = `https://warpcast.com/~/compose?text=${encodedNegativeText}&embeds[]=https://moxie-ft-x-fnft.vercel.app/frames?fid=${symbol.split(":")[1]}`;
 
     return {
       image: (
@@ -238,9 +236,14 @@ const frameHandler = frames(async (ctx) => {
               </div>
             </div>
             <div tw="flex flex-col items-end">
-              <div tw={`flex text-4xl font-bold ${
+              <div
+                tw={`flex text-4xl font-bold ${
                   (latestPercentage - farcasterLatestPercentage) >= 0 ? "text-green-500" : "text-red-500"
-                }`}>{(latestPercentage - farcasterLatestPercentage) >= 0 ? "+" : ""}{(latestPercentage - farcasterLatestPercentage).toFixed(2)}%</div>
+                }`}
+              >
+                {(latestPercentage - farcasterLatestPercentage) >= 0 ? "+" : ""}
+                {(latestPercentage - farcasterLatestPercentage).toFixed(2)}%
+              </div>
             </div>
           </div>
 
