@@ -21,7 +21,7 @@ export async function generateMetadata({
     title: "Moxie Farcaster Network VS Fan Token",
     description: "Check the fan token performance against Farcaster Network",
     openGraph: {
-      title: "oxie Farcaster Network VS Fan Token",
+      title: "Moxie Farcaster Network VS Fan Token",
       description: "Check the fan token performance against Farcaster Network",
       images: [`${framesUrl.origin}/api/og`],
     },
